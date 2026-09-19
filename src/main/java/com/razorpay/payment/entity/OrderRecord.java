@@ -40,7 +40,7 @@ public class OrderRecord {
     @Column(name = "attempt_count")
     private Integer attemptCount = 0;
 
-    @JdbcTypeCode((SqlTypes.JSON))
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "metadata", columnDefinition = "jsonb")
     private Map<String, String> metadata;
 
