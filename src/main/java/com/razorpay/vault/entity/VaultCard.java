@@ -23,7 +23,7 @@ public class VaultCard {
     private String last4Digits;
 
     @Column(nullable = false, length = 6)
-    private String bin;
+    private Integer bin;
 
     @Column(nullable = false)
     private byte[] encryptedPan;
@@ -34,11 +34,11 @@ public class VaultCard {
     @Column(nullable = false)
     private String cardType;
 
-    @Column(nullable = false)
-    private String expiryMonth;
+    @Column(nullable = false, length = 2)
+    private Integer expiryMonth;
 
-    @Column(nullable = false)
-    private String expiryYear;
+    @Column(nullable = false, length = 4)
+    private Integer expiryYear;
 
     @Column(nullable = false)
     private String cardHolderName;
