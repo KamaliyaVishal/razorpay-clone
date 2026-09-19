@@ -16,7 +16,7 @@ public class Money {
         return new Money(amountUnit, currency);
     }
 
-    public Money inr(int amountUnit) {
+    public static Money inr(int amountUnit) {
         return new Money(amountUnit, "INR");
     }
 
