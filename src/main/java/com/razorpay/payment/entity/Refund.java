@@ -36,6 +36,7 @@ public class Refund {
     private Money amount;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     private RefundStatus status = RefundStatus.PENDING;
 
     @Column(name = "bank_reference", length = 100)
