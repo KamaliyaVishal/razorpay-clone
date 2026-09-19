@@ -1,5 +1,6 @@
 package com.razorpay.payment.entity;
 
+import com.razorpay.common.enums.PaymentActor;
 import com.razorpay.common.enums.PaymentEvent;
 import com.razorpay.common.enums.PaymentStatus;
 import jakarta.persistence.*;
@@ -38,10 +39,10 @@ public class PaymentTransitionLog {
     @Column(name = "payment_event", nullable = false)
     private PaymentEvent paymentEvent;
 
-    @Column(name = "actor", nullable = false, length = 50)
-    private String actor; // The actor who performed the transition, e.g., "system", "user", etc.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "actor", nullable = false)
+    private PaymentActor paymentActor;
 
     @Column(name = "occurrence_at", nullable = false)
-    private LocalDateTime occurrenceAt; // The timestamp when the transition occurred
-
+    private LocalDateTime occurrenceAt;
 }
