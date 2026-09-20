@@ -16,13 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthServiceImpl implements AuthService {
 
     private final AppUserRepository appUserRepository;
     private final MerchantRepository merchantRepository;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public MerchantResponse signUpMerchant(MerchantRequest request) {
         if (appUserRepository.existsByEmail(request.email())) {
             throw new DuplicateResourceException("DUPLICATE_MERCHANT_EMAIL",

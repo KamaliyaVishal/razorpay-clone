@@ -20,13 +20,14 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ApiKeyServiceImpl implements ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepository;
     private final MerchantRepository merchantRepository;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public CreateApiKeyResponse create(UUID merchantId, CreateApiKeyRequest request) {
 
         Merchant merchant = merchantRepository.findById(merchantId)
@@ -65,7 +66,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public DeleteResponse revokeApiKeyByMerchantId(UUID merchantId, String keyId) {
 
         ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndKeyId(merchantId, keyId)
