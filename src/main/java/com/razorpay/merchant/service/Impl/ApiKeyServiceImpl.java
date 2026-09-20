@@ -1,6 +1,7 @@
 package com.razorpay.merchant.service.Impl;
 
 import com.razorpay.common.exception.ResourceNotFoundException;
+import com.razorpay.common.util.RandomizerUtil;
 import com.razorpay.merchant.dto.request.CreateApiKeyRequest;
 import com.razorpay.merchant.dto.response.CreateApiKeyResponse;
 import com.razorpay.merchant.entity.ApiKey;
@@ -28,9 +29,15 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         Merchant merchant = merchantRepository.findById(merchantId)
                 .orElseThrow(() -> new ResourceNotFoundException("merchant", merchantId));
 
-        String keyId = "rzp_" + request.environment().name().toUpperCase() + "big_random_string";
 
-        String rawSecret = "big_random_string";
+        String keyId = String.join(
+                "_",
+                "rzp",
+                request.environment().name().toLowerCase(),
+                RandomizerUtil.randomBase64(24)
+        );
+
+        String rawSecret = RandomizerUtil.randomBase64(40);
 
         ApiKey apiKey = ApiKey.builder()
                 .merchant(merchant)
@@ -38,6 +45,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                 .keySecretHash(rawSecret)
                 .environment(request.environment())
                 .build();
+
+        apiKeyRepository.save(apiKey);
 
         return CreateApiKeyResponse.fromEntity(apiKey);
     }
