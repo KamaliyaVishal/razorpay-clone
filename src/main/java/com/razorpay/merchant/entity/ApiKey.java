@@ -35,6 +35,7 @@ public class ApiKey {
     @Column(name = "environment", nullable = false)
     private Environment environment;
 
+    @Builder.Default
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 

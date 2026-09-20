@@ -16,7 +16,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DLQEvent {
+public class DlqEvent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
