@@ -10,7 +10,7 @@ public class RandomizerUtil {
     public static String randomBase64(int length) {
         byte[] bytes = new byte[length];
         SECURE_RANDOM.nextBytes(bytes);
-        return Base64.getEncoder().withoutPadding().encodeToString(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
 }

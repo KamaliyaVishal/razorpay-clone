@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -61,5 +62,20 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         return apiKeys.stream()
                 .map(ApiKeyResponse::fromEntity)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public String revokeApiKeyByMerchantId(UUID merchantId, String keyId) {
+
+        ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndKeyId(merchantId, keyId)
+                .orElseThrow(() -> new ResourceNotFoundException("API Key", keyId));
+
+        // NO NEED TO CALL: apiKeyRepository.save(apiKey);
+        // When this method ends, @Transactional commits,
+        // dirty checking triggers, and the UPDATE SQL runs.
+        apiKey.setEnabled(false);
+
+        return "Merchant with KeyId" + keyId + " has bees successfully revoked!";
     }
 }
