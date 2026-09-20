@@ -7,7 +7,6 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.sql.SQLType;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -33,16 +32,20 @@ public class OrderRecord {
     @Embedded
     private Money amount;
 
+    @Column(length = 100)
+    private String receipt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false)
     private OrderStatus status = OrderStatus.CREATED;
 
+    @Builder.Default
     @Column(name = "attempt_count")
     private Integer attemptCount = 0;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "metadata", columnDefinition = "jsonb")
-    private Map<String, String> metadata;
+    private Map<String, Object> notes;
 
     @Column(name = "expired_at")
     private LocalDateTime expiredAt;

@@ -1,5 +1,6 @@
 package com.razorpay.common.exception;
 
+import com.razorpay.common.exception.enums.ErrorCode;
 import lombok.Getter;
 
 @Getter

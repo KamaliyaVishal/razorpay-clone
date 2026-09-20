@@ -1,6 +1,7 @@
 package com.razorpay.common.hadler;
 
 import com.razorpay.common.exception.*;
+import com.razorpay.common.exception.enums.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +59,7 @@ public class GlobalExceptionHandler {
     }
 
     // PRODUCTION SAFETY NET: Protects logs and hides low-level internal driver exceptions
-    @ExceptionHandler(Exception.class)
+    // @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpectedFailures(Exception exception) {
         log.error("System Failure tracked: ", exception);
         ErrorResponse response = ErrorResponse.of(

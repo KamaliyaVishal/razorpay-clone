@@ -1,4 +1,4 @@
-package com.razorpay.common.exception;
+package com.razorpay.common.exception.enums;
 
 import org.springframework.http.HttpStatus;
 

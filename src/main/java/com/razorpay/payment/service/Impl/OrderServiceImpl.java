@@ -1,0 +1,50 @@
+package com.razorpay.payment.service.Impl;
+
+import com.razorpay.common.enums.OrderStatus;
+import com.razorpay.common.exception.DuplicateResourceException;
+import com.razorpay.payment.dto.request.CreateOrderRequest;
+import com.razorpay.payment.dto.response.OrderResponse;
+import com.razorpay.payment.entity.OrderRecord;
+import com.razorpay.payment.repository.OrderRepository;
+import com.razorpay.payment.service.OrderService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class OrderServiceImpl implements OrderService {
+
+    private final OrderRepository orderRepository;
+
+    @Value("${payment.order.default-order-expiry-minutes : 30}")
+    private int defaultOrderExpiryMinutes;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OrderResponse createOrder(UUID merchantId, CreateOrderRequest request) {
+
+        if (request.receipt() != null && orderRepository.existsByMerchantIdAndReceipt(merchantId, request.receipt()))
+            throw new DuplicateResourceException("Order with receipt already exists", "Receipt", request.receipt());
+
+        OrderRecord order = OrderRecord.builder()
+                .receipt(request.receipt())
+                .amount(request.amount())
+                .notes(request.notes())
+                .merchantId(merchantId)
+                .status(OrderStatus.CREATED)
+                .expiredAt(request.expiresAt() != null
+                        ? request.expiresAt()
+                        : LocalDateTime.now().plusMinutes(defaultOrderExpiryMinutes))
+                .build();
+
+        orderRepository.save(order);
+
+        return OrderResponse.fromEntity(order);
+    }
+}
