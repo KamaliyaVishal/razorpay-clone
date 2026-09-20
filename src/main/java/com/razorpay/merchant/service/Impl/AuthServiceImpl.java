@@ -2,6 +2,7 @@ package com.razorpay.merchant.service.Impl;
 
 import com.razorpay.common.enums.MerchantStatus;
 import com.razorpay.common.enums.UserRole;
+import com.razorpay.common.exception.DuplicateResourceException;
 import com.razorpay.merchant.dto.request.MerchantRequest;
 import com.razorpay.merchant.dto.response.MerchantResponse;
 import com.razorpay.merchant.entity.AppUser;
@@ -24,7 +25,8 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public MerchantResponse signUpMerchant(MerchantRequest request) {
         if (appUserRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new DuplicateResourceException("DUPLICATE_MERCHANT_EMAIL",
+                    "Merchant with Email already exists" + request.email());
         }
 
         //Save the merchant and user details to the database and return the response
