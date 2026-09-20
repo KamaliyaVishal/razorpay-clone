@@ -5,6 +5,7 @@ import com.razorpay.common.util.RandomizerUtil;
 import com.razorpay.merchant.dto.request.CreateApiKeyRequest;
 import com.razorpay.merchant.dto.response.ApiKeyResponse;
 import com.razorpay.merchant.dto.response.CreateApiKeyResponse;
+import com.razorpay.merchant.dto.response.DeleteResponse;
 import com.razorpay.merchant.entity.ApiKey;
 import com.razorpay.merchant.entity.Merchant;
 import com.razorpay.merchant.repository.ApiKeyRepository;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -66,16 +66,16 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     @Transactional
-    public String revokeApiKeyByMerchantId(UUID merchantId, String keyId) {
+    public DeleteResponse revokeApiKeyByMerchantId(UUID merchantId, String keyId) {
 
         ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndKeyId(merchantId, keyId)
-                .orElseThrow(() -> new ResourceNotFoundException("API Key", keyId));
+                .orElseThrow(() -> new ResourceNotFoundException("API_Key", keyId));
 
         // NO NEED TO CALL: apiKeyRepository.save(apiKey);
         // When this method ends, @Transactional commits,
         // dirty checking triggers, and the UPDATE SQL runs.
         apiKey.setEnabled(false);
 
-        return "Merchant with KeyId" + keyId + " has bees successfully revoked!";
+        return DeleteResponse.fromEntity(apiKey, keyId);
     }
 }

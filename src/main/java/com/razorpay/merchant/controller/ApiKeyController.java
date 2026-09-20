@@ -3,6 +3,7 @@ package com.razorpay.merchant.controller;
 import com.razorpay.merchant.dto.request.CreateApiKeyRequest;
 import com.razorpay.merchant.dto.response.ApiKeyResponse;
 import com.razorpay.merchant.dto.response.CreateApiKeyResponse;
+import com.razorpay.merchant.dto.response.DeleteResponse;
 import com.razorpay.merchant.service.ApiKeyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class ApiKeyController {
     }
 
     @DeleteMapping("/{keyId}")
-    public ResponseEntity<String> revokeApiKey(@PathVariable UUID merchantId, @PathVariable String keyId) {
+    public ResponseEntity<DeleteResponse> revokeApiKey(@PathVariable UUID merchantId, @PathVariable String keyId) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(apiKeyService.revokeApiKeyByMerchantId(merchantId, keyId));
     }
