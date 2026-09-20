@@ -3,13 +3,15 @@ package com.razorpay.common.exception;
 import lombok.Getter;
 
 @Getter
-public class DuplicateResourceException extends RuntimeException {
+public class DuplicateResourceException extends BaseBusinessException {
 
-    private final String errorCode;
+    private final String conflictField;
+    private final Object duplicatedValue;
 
-    public DuplicateResourceException(String errorCode, String errorMessage) {
-        super(errorMessage);
-        this.errorCode = errorCode;
+    public DuplicateResourceException(String message, String conflictField, Object duplicatedValue) {
+        super(ErrorCode.DUPLICATE_RESOURCE, message);
+        this.conflictField = conflictField;
+        this.duplicatedValue = duplicatedValue;
     }
 
 }

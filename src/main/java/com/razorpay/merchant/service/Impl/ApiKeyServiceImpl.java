@@ -1,5 +1,6 @@
 package com.razorpay.merchant.service.Impl;
 
+import com.razorpay.common.exception.InvalidParameterException;
 import com.razorpay.common.exception.ResourceNotFoundException;
 import com.razorpay.common.util.RandomizerUtil;
 import com.razorpay.merchant.dto.request.CreateApiKeyRequest;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +43,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                 RandomizerUtil.randomBase64(24)
         );
 
+        //TODO: Encode with BcryptPasswordEncoder
         String rawSecret = RandomizerUtil.randomBase64(40);
 
         ApiKey apiKey = ApiKey.builder()
@@ -56,7 +59,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
-    public List<ApiKeyResponse> fetchAllMerchantApiKeys(UUID merchantId) {
+    public List<ApiKeyResponse> fetchAllApiKeys(UUID merchantId) {
 
         List<ApiKey> apiKeys = apiKeyRepository.findAllByMerchantId(merchantId);
 
@@ -78,5 +81,30 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         apiKey.setEnabled(false);
 
         return DeleteResponse.fromEntity(apiKey, keyId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CreateApiKeyResponse rotateApiKeyByMerchantId(UUID merchantId, String keyId) {
+
+        ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndKeyId(merchantId, keyId)
+                .orElseThrow(() -> new ResourceNotFoundException("API_Key", keyId));
+
+        if (!apiKey.isEnabled())
+            throw new InvalidParameterException("Cannot rotate API key [%s] because it is disabled or revoked.".formatted(keyId),
+                    "keyId",
+                    keyId
+            );
+
+        String newRawSecret = RandomizerUtil.randomBase64(40);
+        apiKey.setPreviousKeySecretHash(apiKey.getKeySecretHash());
+        //TODO: Encode with BcryptPasswordEncoder
+        apiKey.setKeySecretHash(newRawSecret);
+        apiKey.setRotatedAt(LocalDateTime.now());
+        apiKey.setGracePeriodExpiredAt(LocalDateTime.now().plusHours(24));
+
+        apiKeyRepository.save(apiKey);
+
+        return CreateApiKeyResponse.fromEntity(apiKey);
     }
 }

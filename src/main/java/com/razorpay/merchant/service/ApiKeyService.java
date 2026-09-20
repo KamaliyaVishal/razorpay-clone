@@ -13,7 +13,9 @@ import java.util.UUID;
 public interface ApiKeyService {
     CreateApiKeyResponse create(UUID merchantId, CreateApiKeyRequest request);
 
-    List<ApiKeyResponse> fetchAllMerchantApiKeys(UUID merchantId);
+    List<ApiKeyResponse> fetchAllApiKeys(UUID merchantId);
 
     DeleteResponse revokeApiKeyByMerchantId(UUID merchantId, String keyId);
+
+    CreateApiKeyResponse rotateApiKeyByMerchantId(UUID merchantId, String keyId);
 }

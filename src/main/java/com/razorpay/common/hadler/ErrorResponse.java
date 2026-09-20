@@ -1,4 +1,4 @@
-package com.razorpay.common.exception;
+package com.razorpay.common.hadler;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -12,7 +12,6 @@ public record ErrorResponse(
         LocalDateTime timestamp,
         List<FieldError> fieldErrors
 ) {
-
 
     public record FieldError(
             String field,
