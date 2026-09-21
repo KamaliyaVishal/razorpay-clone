@@ -8,8 +8,10 @@ import com.razorpay.payment.dto.request.PaymentInitRequest;
 import com.razorpay.payment.dto.response.PaymentResponse;
 import com.razorpay.payment.entity.OrderRecord;
 import com.razorpay.payment.entity.Payment;
+import com.razorpay.payment.mapper.GlobalPaymentMapper;
 import com.razorpay.payment.payment_gateway.PaymentGatewayRouter;
 import com.razorpay.payment.payment_gateway.dto.PaymentRequest;
+import com.razorpay.payment.payment_gateway.dto.PaymentResult;
 import com.razorpay.payment.repository.OrderRepository;
 import com.razorpay.payment.repository.PaymentRepository;
 import com.razorpay.payment.service.PaymentService;
@@ -26,6 +28,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentGatewayRouter paymentGatewayRouter;
+    private final GlobalPaymentMapper mapper;
 
     @Override
     public PaymentResponse initiatePayment(UUID merchantId, PaymentInitRequest request) {
@@ -64,10 +67,21 @@ public class PaymentServiceImpl implements PaymentService {
                 .methodDetails(request.methodDetails())
                 .build();
 
-        paymentGatewayRouter.routePaymentToDedicatedMethod(paymentRequest);
+        PaymentResult paymentResult = paymentGatewayRouter.routePaymentToDedicatedMethod(paymentRequest);
 
+        switch (paymentResult) {
+            case PaymentResult.Pending pending -> payment.setProcessorReference(pending.registrationRef());
+            case PaymentResult.Failure failure -> {
+                payment.setStatus(PaymentStatus.FAILED);
+                payment.setErrorCode(failure.errorCode());
+                payment.setErrorDescription(failure.errorDescription());
+            }
+        }
 
-        return null;
+        payment = paymentRepository.save(payment);
+        orderRepository.save(order);
+
+        return mapper.toPaymentResponse(payment);
     }
 }
 
