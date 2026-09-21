@@ -1,6 +1,6 @@
 package com.razorpay.merchant.service.Impl;
 
-import com.razorpay.common.exception.InvalidParameterException;
+import com.razorpay.common.exception.BusinessRuleViolationException;
 import com.razorpay.common.exception.ResourceNotFoundException;
 import com.razorpay.common.util.RandomizerUtil;
 import com.razorpay.merchant.dto.request.CreateApiKeyRequest;
@@ -91,10 +91,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                 .orElseThrow(() -> new ResourceNotFoundException("API_Key", keyId));
 
         if (!apiKey.isEnabled())
-            throw new InvalidParameterException("Cannot rotate API key [%s] because it is disabled or revoked.".formatted(keyId),
-                    "keyId",
-                    keyId
-            );
+            throw new BusinessRuleViolationException("Cannot rotate API key [%s] because it is disabled or revoked.".formatted(keyId),
+                    "keyId", keyId);
 
         String newRawSecret = RandomizerUtil.randomBase64(40);
         apiKey.setPreviousKeySecretHash(apiKey.getKeySecretHash());

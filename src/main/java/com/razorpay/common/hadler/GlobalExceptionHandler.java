@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
         List<ErrorResponse.FieldError> fieldErrors = null;
 
         // Extract specific metadata fields if they exist at runtime
-        if (exception instanceof InvalidParameterException invalidParamEx) {
+        if (exception instanceof BusinessRuleViolationException invalidParamEx) {
             fieldErrors = List.of(
                     new ErrorResponse.FieldError(invalidParamEx.getParameterName(), "Rejected Value: " + invalidParamEx.getInvalidValue())
             );

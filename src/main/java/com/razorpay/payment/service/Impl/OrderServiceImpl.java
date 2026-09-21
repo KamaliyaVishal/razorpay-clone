@@ -2,7 +2,7 @@ package com.razorpay.payment.service.Impl;
 
 import com.razorpay.common.enums.OrderStatus;
 import com.razorpay.common.exception.DuplicateResourceException;
-import com.razorpay.common.exception.InvalidParameterException;
+import com.razorpay.common.exception.BusinessRuleViolationException;
 import com.razorpay.common.exception.ResourceNotFoundException;
 import com.razorpay.payment.dto.request.CreateOrderRequest;
 import com.razorpay.payment.dto.response.OrderResponse;
@@ -75,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
         OrderRecord orderRecord = findOrderById(merchantId, orderId);
 
         if (Set.of(OrderStatus.CANCELLED, OrderStatus.PAID).contains(orderRecord.getStatus()))
-            throw new InvalidParameterException("This order cannot be cancelled because it is already paid or cancelled",
+            throw new BusinessRuleViolationException("This order cannot be cancelled because it is already paid or cancelled",
                     "OrderStatus", orderRecord.getStatus());
 
         orderRecord.setStatus(OrderStatus.CANCELLED);

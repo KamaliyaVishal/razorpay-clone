@@ -53,7 +53,7 @@ public class Payment extends BaseEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "method_details", columnDefinition = "jsonb")
-    private Map<String, String> methodDetails;
+    private Map<String, Object> methodDetails;
 
     @Column(name = "bank_reference", length = 100)
     private String bankReference;
