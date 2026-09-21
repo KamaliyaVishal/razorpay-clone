@@ -9,6 +9,7 @@ import com.razorpay.merchant.dto.response.CreateApiKeyResponse;
 import com.razorpay.merchant.dto.response.DeleteResponse;
 import com.razorpay.merchant.entity.ApiKey;
 import com.razorpay.merchant.entity.Merchant;
+import com.razorpay.merchant.mapper.GlobalMerchantMapper;
 import com.razorpay.merchant.repository.ApiKeyRepository;
 import com.razorpay.merchant.repository.MerchantRepository;
 import com.razorpay.merchant.service.ApiKeyService;
@@ -27,6 +28,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepository;
     private final MerchantRepository merchantRepository;
+    private final GlobalMerchantMapper mapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -55,7 +57,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
         apiKeyRepository.save(apiKey);
 
-        return CreateApiKeyResponse.fromEntity(apiKey);
+        return mapper.toCreateApiKeyResponse(apiKey);
     }
 
     @Override
@@ -63,9 +65,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
         List<ApiKey> apiKeys = apiKeyRepository.findAllByMerchantId(merchantId);
 
-        return apiKeys.stream()
-                .map(ApiKeyResponse::fromEntity)
-                .toList();
+        return mapper.toApiKeyResponseList(apiKeys);
     }
 
     @Override
@@ -105,6 +105,6 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
         apiKeyRepository.save(apiKey);
 
-        return CreateApiKeyResponse.fromEntity(apiKey);
+        return mapper.toCreateApiKeyResponse(apiKey);
     }
 }

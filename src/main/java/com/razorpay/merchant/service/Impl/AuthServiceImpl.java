@@ -7,6 +7,7 @@ import com.razorpay.merchant.dto.request.MerchantRequest;
 import com.razorpay.merchant.dto.response.MerchantResponse;
 import com.razorpay.merchant.entity.AppUser;
 import com.razorpay.merchant.entity.Merchant;
+import com.razorpay.merchant.mapper.GlobalMerchantMapper;
 import com.razorpay.merchant.repository.AppUserRepository;
 import com.razorpay.merchant.repository.MerchantRepository;
 import com.razorpay.merchant.service.AuthService;
@@ -21,6 +22,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final AppUserRepository appUserRepository;
     private final MerchantRepository merchantRepository;
+    private final GlobalMerchantMapper mapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -50,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
 
         appUserRepository.save(appUser);
 
-        return MerchantResponse.fromEntity(merchant);
+        return mapper.toMerchantResponse(merchant);
 
     }
 }

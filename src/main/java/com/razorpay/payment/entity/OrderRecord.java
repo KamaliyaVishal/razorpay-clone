@@ -40,8 +40,8 @@ public class OrderRecord {
     private OrderStatus status = OrderStatus.CREATED;
 
     @Builder.Default
-    @Column(name = "attempt_count")
-    private Integer attemptCount = 0;
+    @Column(name = "attempts")
+    private Integer attempts = 0;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "metadata", columnDefinition = "jsonb")
