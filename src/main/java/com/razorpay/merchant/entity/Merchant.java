@@ -1,5 +1,6 @@
 package com.razorpay.merchant.entity;
 
+import com.razorpay.common.entity.BaseEntity;
 import com.razorpay.common.enums.BusinessType;
 import com.razorpay.common.enums.MerchantStatus;
 import jakarta.persistence.*;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Merchant {
+public class Merchant extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

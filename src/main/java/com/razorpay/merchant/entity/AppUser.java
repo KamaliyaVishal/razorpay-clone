@@ -1,5 +1,6 @@
 package com.razorpay.merchant.entity;
 
+import com.razorpay.common.entity.BaseEntity;
 import com.razorpay.common.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AppUser {
+public class AppUser extends BaseEntity {
 
     @Id
     @Column(name = "id", nullable = false)
