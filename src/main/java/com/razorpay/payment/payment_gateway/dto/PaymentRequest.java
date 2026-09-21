@@ -1,4 +1,4 @@
-package com.razorpay.payment.gateway.dto;
+package com.razorpay.payment.payment_gateway.dto;
 
 import com.razorpay.common.entity.Money;
 import com.razorpay.common.enums.PaymentMethod;
