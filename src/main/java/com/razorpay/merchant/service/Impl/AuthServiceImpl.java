@@ -32,13 +32,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //Save the merchant and user details to the database and return the response
-        Merchant merchant = Merchant.builder()
-                .name(request.name())
-                .email(request.email())
-                .businessName(request.businessName())
-                .businessType(request.businessType())
-                .status(MerchantStatus.PENDING_KYC)
-                .build();
+        Merchant merchant = mapper.fromMerchantRequest(request);
+        merchant.setStatus(MerchantStatus.PENDING_KYC);
 
         merchantRepository.save(merchant);
 
