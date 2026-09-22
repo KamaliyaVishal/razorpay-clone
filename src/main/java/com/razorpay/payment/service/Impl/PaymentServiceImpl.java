@@ -76,6 +76,9 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.setErrorCode(failure.errorCode());
                 payment.setErrorDescription(failure.errorDescription());
             }
+            case PaymentResult.Success success ->{
+
+            }
         }
 
         payment = paymentRepository.save(payment);
