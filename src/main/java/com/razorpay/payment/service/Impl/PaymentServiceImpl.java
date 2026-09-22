@@ -1,6 +1,7 @@
 package com.razorpay.payment.service.Impl;
 
 import com.razorpay.common.enums.OrderStatus;
+import com.razorpay.common.enums.PaymentEvent;
 import com.razorpay.common.enums.PaymentStatus;
 import com.razorpay.common.exception.BusinessRuleViolationException;
 import com.razorpay.common.exception.ResourceNotFoundException;
@@ -15,6 +16,7 @@ import com.razorpay.payment.payment_gateway.dto.PaymentResult;
 import com.razorpay.payment.repository.OrderRepository;
 import com.razorpay.payment.repository.PaymentRepository;
 import com.razorpay.payment.service.PaymentService;
+import com.razorpay.payment.statemachine.PaymentTransitionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentGatewayRouter paymentGatewayRouter;
     private final GlobalPaymentMapper mapper;
+    private final PaymentTransitionService paymentTransitionService;
 
     @Override
     public PaymentResponse initiatePayment(UUID merchantId, PaymentInitRequest request) {
@@ -69,12 +72,16 @@ public class PaymentServiceImpl implements PaymentService {
                 .methodDetails(request.methodDetails())
                 .build();
 
+        // Payment states derived from state transitions
+        paymentTransitionService.apply(payment, PaymentEvent.AUTHORIZE_ATTEMPT);
+
         PaymentResult paymentResult = paymentGatewayRouter.routeInitiatePaymentStrategy(paymentRequest);
 
         switch (paymentResult) {
             case PaymentResult.Pending pending -> payment.setProcessorReference(pending.registrationRef());
             case PaymentResult.Failure failure -> {
-                payment.setStatus(PaymentStatus.FAILED);
+                // Do not set payment states directly; use the state machine instead to prevent unintended state transitions.
+                payment.setStatus(paymentTransitionService.apply(payment, PaymentEvent.AUTHORIZE_FAIL));
                 payment.setErrorCode(failure.errorCode());
                 payment.setErrorDescription(failure.errorDescription());
             }
@@ -95,7 +102,8 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findByMerchantIdAndID(merchantId, paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
 
-        payment.setStatus(PaymentStatus.CAPTURING);
+        // Do not set payment states directly; use the state machine instead to prevent unintended state transitions.
+        paymentTransitionService.apply(payment, PaymentEvent.CAPTURE_REQUEST);
         PaymentResult paymentResult = paymentGatewayRouter
                 .routeCapturePaymentStrategy(payment.getPaymentMethod(), paymentId);
 
@@ -104,13 +112,13 @@ public class PaymentServiceImpl implements PaymentService {
 
             }
             case PaymentResult.Failure failure -> {
-                payment.setStatus(PaymentStatus.AUTHORIZED);
+                paymentTransitionService.apply(payment, PaymentEvent.CAPTURE_FAIL);
                 payment.setErrorCode(failure.errorCode());
                 payment.setErrorDescription(failure.errorDescription());
                 log.info("Payment failed while capturing for Payment : {}", paymentId);
             }
             case PaymentResult.Success success -> {
-                payment.setStatus(PaymentStatus.CAPTURED);
+                paymentTransitionService.apply(payment, PaymentEvent.CAPTURE_SUCCESS);
                 payment.setCapturedAt(LocalDateTime.now());
                 payment.setProcessorReference(success.bankReference());
                 log.info("Payment captured for Payment : {}", paymentId);
