@@ -99,7 +99,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentResponse capturePayment(UUID merchantId, UUID paymentId) {
 
-        Payment payment = paymentRepository.findByMerchantIdAndID(merchantId, paymentId)
+        Payment payment = paymentRepository.findByMerchantIdAndId(merchantId, paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
 
         // Do not set payment states directly; use the state machine instead to prevent unintended state transitions.
