@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -15,13 +16,23 @@ public class PaymentGatewayRouter {
 
     private final Map<PaymentMethod, PaymentAdapter> paymentAdapterMap;
 
-    public PaymentResult routePaymentToDedicatedMethod(PaymentRequest request) {
-        PaymentAdapter paymentAdapter = paymentAdapterMap.get(request.paymentMethod());
-        if (paymentAdapter == null)
-            throw new BusinessRuleViolationException("No Payment gateway method register fot method" + request.paymentMethod(),
-                    "Payment Method", request.paymentMethod());
+    public PaymentResult routeInitiatePaymentStrategy(PaymentRequest request) {
 
+        PaymentAdapter paymentAdapter = getPaymentAdapter(request.paymentMethod());
         return paymentAdapter.initiatePayment(request);
     }
 
+    private PaymentAdapter getPaymentAdapter(PaymentMethod paymentMethod) {
+        PaymentAdapter paymentAdapter = paymentAdapterMap.get(paymentMethod);
+        if (paymentAdapter == null)
+            throw new BusinessRuleViolationException("No Payment gateway method register fot method" + paymentMethod,
+                    "Payment Method", paymentMethod);
+        return paymentAdapter;
+    }
+
+    public PaymentResult routeCapturePaymentStrategy(PaymentMethod paymentMethod, UUID paymentId) {
+
+        PaymentAdapter paymentAdapter = getPaymentAdapter(paymentMethod);
+        return paymentAdapter.capturePayment(paymentId);
+    }
 }

@@ -37,7 +37,6 @@ public class PaymentServiceImpl implements PaymentService {
         OrderRecord order = orderRepository.findByMerchantIdAndId(merchantId, request.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException("OrderId", request.orderId()));
 
-
         if (!Set.of(OrderStatus.CREATED, OrderStatus.ATTEMPTED).contains(order.getStatus()))
             throw new BusinessRuleViolationException("Order cannot accept payment in status" + order.getStatus(),
                     "OrderStatus", order.getStatus());
@@ -67,7 +66,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .methodDetails(request.methodDetails())
                 .build();
 
-        PaymentResult paymentResult = paymentGatewayRouter.routePaymentToDedicatedMethod(paymentRequest);
+        PaymentResult paymentResult = paymentGatewayRouter.routeInitiatePaymentStrategy(paymentRequest);
 
         switch (paymentResult) {
             case PaymentResult.Pending pending -> payment.setProcessorReference(pending.registrationRef());
@@ -76,7 +75,7 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.setErrorCode(failure.errorCode());
                 payment.setErrorDescription(failure.errorDescription());
             }
-            case PaymentResult.Success success ->{
+            case PaymentResult.Success success -> {
 
             }
         }
@@ -85,6 +84,32 @@ public class PaymentServiceImpl implements PaymentService {
         orderRepository.save(order);
 
         return mapper.toPaymentResponse(payment);
+    }
+
+    @Override
+    public PaymentResponse capturePayment(UUID merchantId, UUID paymentId) {
+
+        Payment payment = paymentRepository.findByMerchantIdAndID(merchantId, paymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+
+        payment.setStatus(PaymentStatus.CAPTURING);
+        PaymentResult paymentResult = paymentGatewayRouter
+                .routeCapturePaymentStrategy(payment.getPaymentMethod(), paymentId);
+
+        switch (paymentResult) {
+            case PaymentResult.Pending pending
+                    -> payment.setProcessorReference(pending.registrationRef());
+            case PaymentResult.Failure failure -> {
+                payment.setStatus(PaymentStatus.FAILED);
+                payment.setErrorCode(failure.errorCode());
+                payment.setErrorDescription(failure.errorDescription());
+            }
+            case PaymentResult.Success success -> {
+
+            }
+        }
+
+        return null;
     }
 }
 

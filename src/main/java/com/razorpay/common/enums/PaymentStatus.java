@@ -1,6 +1,7 @@
 package com.razorpay.common.enums;
 
 public enum PaymentStatus {
+    CREATING,
     CREATED,
     AUTHORIZING,
     AUTHORIZED,
