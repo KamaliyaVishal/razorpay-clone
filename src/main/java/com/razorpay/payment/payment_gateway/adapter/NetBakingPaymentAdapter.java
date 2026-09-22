@@ -21,7 +21,7 @@ public class NetBakingPaymentAdapter implements PaymentAdapter {
     @Override
     public PaymentResult initiatePayment(PaymentRequest request) {
 
-        log.info("Initiate request with NetBanking payment with PaymentId:{}", request.paymentId());
+        log.info("Initiating request for NetBaking payment with PaymentId: {}", request.paymentId());
 
         try {
             PaymentProcessorRequest paymentProcessorRequest = PaymentProcessorRequest.nonCard(
