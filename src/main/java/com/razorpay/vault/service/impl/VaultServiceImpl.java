@@ -1,7 +1,12 @@
 package com.razorpay.vault.service.impl;
 
+import com.razorpay.common.entity.Money;
 import com.razorpay.common.enums.CardType;
+import com.razorpay.common.exception.ResourceNotFoundException;
 import com.razorpay.common.util.RandomizerUtil;
+import com.razorpay.payment.payment_processor.PaymentProcessorRouter;
+import com.razorpay.payment.payment_processor.dto.PaymentProcessorRequest;
+import com.razorpay.payment.payment_processor.dto.PaymentProcessorResponse;
 import com.razorpay.vault.config.VaultEncryptionConfig;
 import com.razorpay.vault.dto.request.TokenizeRequest;
 import com.razorpay.vault.dto.response.TokenizeResponse;
@@ -13,12 +18,14 @@ import com.razorpay.vault.service.VaultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.encrypt.BytesEncryptor;
-import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.UUID;
 
 @Service
@@ -30,6 +37,7 @@ public class VaultServiceImpl implements VaultService {
     private final VaultCardRepository vaultCardRepository;
     private final CardTokenRepository cardTokenRepository;
     private final BytesEncryptor dekEncryptor;
+    private final PaymentProcessorRouter paymentProcessorRouter;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -67,6 +75,41 @@ public class VaultServiceImpl implements VaultService {
 
         cardTokenRepository.save(cardToken);
         return new TokenizeResponse(randomToken, lastFour, cardType, request.expiryMonth(), request.expiryYear());
+    }
+
+    @Override
+    public PaymentProcessorResponse charge(UUID paymentId, String token, Money amount, Map<String, Object> methodDetails) {
+
+        CardToken cardToken = cardTokenRepository.findByTokenAndRevokedAtIsNull(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Token", token));
+
+        VaultCard vaultCard = cardToken.getVaultCard();
+        byte[] panBytes = null;
+
+        try {
+            byte[] dek = dekEncryptor.decrypt(vaultCard.getEncryptedDek());
+            panBytes = VaultEncryptionConfig.panEncryptor(dek).decrypt(vaultCard.getEncryptedPan());
+
+            String pan = new String(panBytes, StandardCharsets.UTF_8);
+            String expiry = vaultCard.getExpiryMonth() + "/" + vaultCard.getExpiryYear();
+
+            PaymentProcessorRequest paymentProcessorRequest = PaymentProcessorRequest
+                    .card(paymentId, pan, expiry, amount, methodDetails);
+
+            PaymentProcessorResponse paymentProcessorResponse = paymentProcessorRouter
+                    .routeToDedicatedPaymentProcessor(paymentProcessorRequest);
+
+            log.info("Vault charge registered with token: {}*****", token.substring(0, 4));
+
+            return paymentProcessorResponse;
+
+        } catch (Exception e) {
+            log.warn("Vault charge failed with token: {}*****", token.substring(0, 4));
+            return new PaymentProcessorResponse.Failure("VAULT_CHARGE_FAILED", e.getMessage());
+
+        } finally {
+            if (panBytes != null) Arrays.fill(panBytes, (byte) 0);
+        }
     }
 
     private CardType detectCardType(String pan) {
