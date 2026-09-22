@@ -16,12 +16,15 @@ import com.razorpay.payment.repository.OrderRepository;
 import com.razorpay.payment.repository.PaymentRepository;
 import com.razorpay.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
@@ -97,15 +100,20 @@ public class PaymentServiceImpl implements PaymentService {
                 .routeCapturePaymentStrategy(payment.getPaymentMethod(), paymentId);
 
         switch (paymentResult) {
-            case PaymentResult.Pending pending
-                    -> payment.setProcessorReference(pending.registrationRef());
+            case PaymentResult.Pending pending -> {
+
+            }
             case PaymentResult.Failure failure -> {
-                payment.setStatus(PaymentStatus.FAILED);
+                payment.setStatus(PaymentStatus.AUTHORIZED);
                 payment.setErrorCode(failure.errorCode());
                 payment.setErrorDescription(failure.errorDescription());
+                log.info("Payment failed while capturing for Payment : {}", paymentId);
             }
             case PaymentResult.Success success -> {
-
+                payment.setStatus(PaymentStatus.CAPTURED);
+                payment.setCapturedAt(LocalDateTime.now());
+                payment.setProcessorReference(success.bankReference());
+                log.info("Payment captured for Payment : {}", paymentId);
             }
         }
 
