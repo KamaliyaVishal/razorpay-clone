@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public record TokenizeRequest(
 
+        UUID customerId,
+
         @NotBlank(message = "PAN is required")
         @LuhnCheck(message = "Invalid card number")
         @Pattern(regexp = "^[0-9]{13,19}$", message = "PAN length is invalid")
@@ -26,11 +28,8 @@ public record TokenizeRequest(
         @ExpiryYear
         Integer expiryYear,
 
-        UUID customerId,
-
         @Size(min = 3, message = "Card Holder Name should have at least 3 characters")
         String cardHolderName
-
 
 ) {
 }
