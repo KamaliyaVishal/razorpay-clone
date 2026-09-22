@@ -5,13 +5,15 @@ import com.razorpay.common.exception.BusinessRuleViolationException;
 import com.razorpay.payment.payment_processor.dto.PaymentProcessorRequest;
 import com.razorpay.payment.payment_processor.dto.PaymentProcessorResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+@Component
 @RequiredArgsConstructor
 public class PaymentProcessorRouter {
 
-    private Map<PaymentMethod, PaymentProcessor> paymentProcessorMap;
+    private final Map<PaymentMethod, PaymentProcessor> paymentProcessorMap;
 
     public PaymentProcessorResponse routeToDedicatedPaymentProcessor(PaymentProcessorRequest request) {
 
