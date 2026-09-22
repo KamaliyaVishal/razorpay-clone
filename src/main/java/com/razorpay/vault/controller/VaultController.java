@@ -22,7 +22,6 @@ public class VaultController {
     private final VaultService vaultService;
     UUID merchantId = UUID.fromString("73936a07-f285-4930-9dab-1801ede02d8c");
 
-
     @PostMapping("/tokenize")
     public ResponseEntity<TokenizeResponse> tokenize(@Valid @RequestBody TokenizeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
