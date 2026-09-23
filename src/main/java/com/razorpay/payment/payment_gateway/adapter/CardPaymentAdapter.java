@@ -3,12 +3,10 @@ package com.razorpay.payment.payment_gateway.adapter;
 import com.razorpay.payment.payment_gateway.PaymentAdapter;
 import com.razorpay.payment.payment_gateway.dto.PaymentRequest;
 import com.razorpay.payment.payment_gateway.dto.PaymentResult;
-import com.razorpay.payment.payment_processor.PaymentProcessor;
 import com.razorpay.payment.payment_processor.dto.PaymentProcessorResponse;
 import com.razorpay.vault.service.VaultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.resource.transaction.spi.DdlTransactionIsolator;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
