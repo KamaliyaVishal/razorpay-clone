@@ -1,4 +1,4 @@
-package com.razorpay.payment.statemachine;
+package com.razorpay.payment.payment_transition;
 
 import com.razorpay.common.enums.PaymentEvent;
 import com.razorpay.common.enums.PaymentStatus;

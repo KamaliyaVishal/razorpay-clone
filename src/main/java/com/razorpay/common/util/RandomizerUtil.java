@@ -16,9 +16,4 @@ public class RandomizerUtil {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    // Usage: Direct Encryption Keys (DEK) for AES-256
-    public static byte[] generateKey(int length) {
-        return KeyGenerators.secureRandom(length).generateKey();
-    }
-
 }

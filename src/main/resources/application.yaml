@@ -25,7 +25,7 @@ vault:
 payment:
   simulator:
     poll-interval-ms: 5000
-    chaos-mode: NORMAL
+    chaos-mode: SUCCESS
     methods:
       CARD:
         min-delay-seconds: 2

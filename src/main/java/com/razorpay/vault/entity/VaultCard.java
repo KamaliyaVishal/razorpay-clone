@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "vault_card")
@@ -17,9 +18,9 @@ import java.time.LocalDateTime;
 public class VaultCard extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false)
-    private Long id;
+    private UUID id;
 
     @Column(nullable = false, length = 4)
     private String last4Digits;

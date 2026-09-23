@@ -16,7 +16,7 @@ import com.razorpay.payment.payment_gateway.dto.PaymentResult;
 import com.razorpay.payment.repository.OrderRepository;
 import com.razorpay.payment.repository.PaymentRepository;
 import com.razorpay.payment.service.PaymentService;
-import com.razorpay.payment.statemachine.PaymentTransitionService;
+import com.razorpay.payment.payment_transition.PaymentTransitionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,15 +40,15 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentResponse initiatePayment(UUID merchantId, PaymentInitRequest request) {
 
-        //Validate the order before payment
+        // Validate the order before payment
         OrderRecord order = orderRepository.findByMerchantIdAndId(merchantId, request.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException("OrderId", request.orderId()));
 
         if (!Set.of(OrderStatus.CREATED, OrderStatus.ATTEMPTED).contains(order.getStatus()))
-            throw new BusinessRuleViolationException("Order cannot accept payment in status" + order.getStatus(),
+            throw new BusinessRuleViolationException("Order cannot accept payment in status " + order.getStatus(),
                     "OrderStatus", order.getStatus());
 
-        //Payment attempt capture in DB
+        // Payment attempt capture in DB
         order.setStatus(OrderStatus.ATTEMPTED);
         order.setAttempts(order.getAttempts() + 1);
 
@@ -59,11 +59,12 @@ public class PaymentServiceImpl implements PaymentService {
                 .status(PaymentStatus.CREATED)
                 .paymentMethod(request.method())
                 .methodDetails(request.methodDetails())
+                .idempotencyKey(UUID.randomUUID().toString())
                 .build();
 
         paymentRepository.save(payment);
 
-        //Payment initialed
+        // Payment initialed
         PaymentRequest paymentRequest = PaymentRequest.builder()
                 .paymentId(payment.getId())
                 .orderId(order.getId())
@@ -75,7 +76,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Payment states derived from state transitions
         paymentTransitionService.apply(payment, PaymentEvent.AUTHORIZE_ATTEMPT);
-        PaymentResult paymentResult = paymentGatewayRouter.routeInitiatePaymentStrategy(paymentRequest);
+        PaymentResult paymentResult = paymentGatewayRouter
+                .routeInitiatePaymentStrategy(paymentRequest);
 
         switch (paymentResult) {
             case PaymentResult.Pending pending -> payment.setProcessorReference(pending.registrationRef());
@@ -156,7 +158,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             switch (captureResult) {
                 case PaymentResult.Success success -> {
-                    paymentTransitionService.apply(payment, PaymentEvent.AUTHORIZE_SUCCESS);
+                    paymentTransitionService.apply(payment, PaymentEvent.CAPTURE_SUCCESS);
                     payment.setCapturedAt(LocalDateTime.now());
                     orderRecord.setStatus(OrderStatus.PAID);
                 }

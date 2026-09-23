@@ -18,6 +18,7 @@ import com.razorpay.vault.service.VaultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.encrypt.BytesEncryptor;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +49,7 @@ public class VaultServiceImpl implements VaultService {
         String bin = pan.substring(0, 6);
         CardType cardType = detectCardType(pan);
 
-        byte[] dek = RandomizerUtil.generateKey(32);
+        byte[] dek = KeyGenerators.secureRandom(32).generateKey();
         byte[] encryptedPan = VaultEncryptionConfig.panEncryptor(dek)
                 .encrypt(pan.getBytes(StandardCharsets.UTF_8));
         byte[] encryptedDek = dekEncryptor.encrypt(dek);
@@ -64,7 +65,7 @@ public class VaultServiceImpl implements VaultService {
                 .expiryYear(request.expiryYear())
                 .build();
 
-        String randomToken = Arrays.toString(RandomizerUtil.generateKey(12));
+        String randomToken = "tok_" + RandomizerUtil.randomBase64(32);
 
         CardToken cardToken = CardToken.builder()
                 .vaultCard(vaultCard)
