@@ -74,7 +74,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Payment states derived from state transitions
         paymentTransitionService.apply(payment, PaymentEvent.AUTHORIZE_ATTEMPT);
-
         PaymentResult paymentResult = paymentGatewayRouter.routeInitiatePaymentStrategy(paymentRequest);
 
         switch (paymentResult) {
@@ -127,6 +126,11 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         return null;
+    }
+
+    @Override
+    public void resolveAuthorization(UUID paymentId, boolean approve, String bankRef, String errorCode, String errorDescription) {
+
     }
 }
 
