@@ -15,9 +15,13 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class WebSecurityConfig {
 
+    private static final String[] JWT_ROUTES = {"/api/v1/auth/**", "/api/v1/merchants/**", "/api/v1/admin/**", "/api/actuator/**", "/api/webhook/**"};
+    private static final String[] API_KEY_ROUTES = {"/api/v1/orders/**", "/api/v1/payment/**", "/api/v1/vault/**"};
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
         return httpSecurity
+                .securityMatcher(JWT_ROUTES)
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
