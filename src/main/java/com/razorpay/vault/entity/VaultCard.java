@@ -33,6 +33,7 @@ public class VaultCard extends BaseEntity {
     @Column(nullable = false)
     private byte[] encryptedDek;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CardType cardType;
 
