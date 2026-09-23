@@ -20,6 +20,7 @@ import com.razorpay.payment.statemachine.PaymentTransitionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -129,8 +130,53 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public void resolveAuthorization(UUID paymentId, boolean approve, String bankRef, String errorCode, String errorDescription) {
+    @Transactional
+    public void resolveAuthorization(UUID paymentId, boolean approve, String bankRef,
+                                     String errorCode, String errorDescription) {
 
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("PaymentId", paymentId));
+
+        if (payment.getStatus() != PaymentStatus.AUTHORIZING) {
+            log.warn("Payment is not in Authorizing state, paymentID: {}, status: {}", paymentId, payment.getStatus());
+            return;
+        }
+
+        OrderRecord orderRecord = payment.getOrderRecord();
+
+        if (approve) {
+            paymentTransitionService.apply(payment, PaymentEvent.AUTHORIZE_SUCCESS);
+            payment.setBankReference(bankRef);
+            payment.setCapturedAt(LocalDateTime.now());
+
+            //Auto-Capture
+            paymentTransitionService.apply(payment, PaymentEvent.CAPTURE_REQUEST);
+            PaymentResult captureResult = paymentGatewayRouter
+                    .routeCapturePaymentStrategy(payment.getPaymentMethod(), paymentId);
+
+            switch (captureResult) {
+                case PaymentResult.Success success -> {
+                    paymentTransitionService.apply(payment, PaymentEvent.AUTHORIZE_SUCCESS);
+                    payment.setCapturedAt(LocalDateTime.now());
+                    orderRecord.setStatus(OrderStatus.PAID);
+                }
+                case PaymentResult.Failure failure -> {
+                    paymentTransitionService.apply(payment, PaymentEvent.CAPTURE_FAIL);
+                    payment.setErrorCode(failure.errorCode());
+                    payment.setErrorDescription(failure.errorDescription());
+
+                }
+                default -> throw new IllegalStateException("Unexpected value: " + captureResult);
+            }
+
+        } else {
+            paymentTransitionService.apply(payment, PaymentEvent.AUTHORIZE_FAIL);
+            payment.setErrorCode(errorCode);
+            payment.setErrorDescription(errorDescription);
+        }
+
+        paymentRepository.save(payment);
+        orderRepository.save(orderRecord);
     }
 }
 
