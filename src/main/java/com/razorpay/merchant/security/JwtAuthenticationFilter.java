@@ -26,20 +26,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final HandlerExceptionResolver handlerExceptionResolver;
     private final MerchantContext merchantContext;
+    private static final String BEARER_PREFIX = "Bearer ";
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        log.info("Incoming request : {}", request.getRequestURI());
+        log.info("Incoming request inside JwtAuthenticationFilter : {}", request.getRequestURI());
 
         try {
             final String authorizationHeader = request.getHeader("Authorization");
-            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer")) {
+            if (authorizationHeader == null || !authorizationHeader.startsWith(BEARER_PREFIX)) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            String jwtToken = authorizationHeader.split("Bearer ")[1];
+            String jwtToken = authorizationHeader.split(BEARER_PREFIX)[1];
             Claims claims = jwtUtil.verifyAccessToken(jwtToken.trim());
 
             if (claims != null && SecurityContextHolder.getContext().getAuthentication() == null) {
