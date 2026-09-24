@@ -17,6 +17,7 @@ import com.razorpay.vault.repository.VaultCardRepository;
 import com.razorpay.vault.service.VaultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,9 @@ public class VaultServiceImpl implements VaultService {
     private final BytesEncryptor dekEncryptor;
     private final PaymentProcessorRouter paymentProcessorRouter;
 
+    @Value("${vault.randomToken-length: 32}")
+    private Integer tokenLength;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public TokenizeResponse tokenize(TokenizeRequest request, UUID merchantId) {
@@ -49,7 +53,7 @@ public class VaultServiceImpl implements VaultService {
         String bin = pan.substring(0, 6);
         CardType cardType = detectCardType(pan);
 
-        byte[] dek = KeyGenerators.secureRandom(32).generateKey();
+        byte[] dek = KeyGenerators.secureRandom(tokenLength).generateKey();
         byte[] encryptedPan = VaultEncryptionConfig.panEncryptor(dek)
                 .encrypt(pan.getBytes(StandardCharsets.UTF_8));
         byte[] encryptedDek = dekEncryptor.encrypt(dek);
@@ -65,7 +69,7 @@ public class VaultServiceImpl implements VaultService {
                 .expiryYear(request.expiryYear())
                 .build();
 
-        String randomToken = "tok_" + RandomizerUtil.randomBase64(32);
+        String randomToken = "tok_" + RandomizerUtil.randomBase64(tokenLength);
 
         CardToken cardToken = CardToken.builder()
                 .vaultCard(vaultCard)

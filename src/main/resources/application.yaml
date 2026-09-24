@@ -26,6 +26,7 @@ spring:
 
 vault:
   master-key: X7vG9mQK2zYWpB4s5uRtE1dF3nG6hJ8kLmNpQrStUvW=
+  randomToken-length: 32
 
 payment:
   simulator:
@@ -44,6 +45,11 @@ payment:
         min-delay-seconds: 4
         max-delay-seconds: 10
         success-rate: 80
+
+api-key:
+  keyId-length: 24
+  rawSecret-length: 40
+  gracePeriod-expiry-time-in-hour: 24
 
 jwt:
   secret-key: 7yH8zX$mK#q2wB!vE9xZ6*fN3sU1pA5jD8cK0mQ!rT4vW9zB2xY5

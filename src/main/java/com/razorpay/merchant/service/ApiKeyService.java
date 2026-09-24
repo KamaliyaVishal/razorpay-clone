@@ -15,7 +15,7 @@ public interface ApiKeyService {
 
     List<ApiKeyResponse> fetchAllApiKeys(UUID merchantId);
 
-    DeleteResponse revokeApiKeyByMerchantId(UUID merchantId, String keyId);
+    DeleteResponse revokeApiKeyByMerchantId(UUID merchantId, UUID keyId);
 
-    CreateApiKeyResponse rotateApiKeyByMerchantId(UUID merchantId, String keyId);
+    CreateApiKeyResponse rotateApiKeyByMerchantId(UUID merchantId, UUID keyId);
 }

@@ -3,6 +3,7 @@ package com.razorpay.merchant.service.Impl;
 import com.razorpay.common.exception.BusinessRuleViolationException;
 import com.razorpay.common.exception.ResourceNotFoundException;
 import com.razorpay.common.util.RandomizerUtil;
+import com.razorpay.merchant.cache.impl.ApiKeyCacheImpl;
 import com.razorpay.merchant.dto.request.CreateApiKeyRequest;
 import com.razorpay.merchant.dto.response.ApiKeyResponse;
 import com.razorpay.merchant.dto.response.CreateApiKeyResponse;
@@ -14,6 +15,7 @@ import com.razorpay.merchant.repository.ApiKeyRepository;
 import com.razorpay.merchant.repository.MerchantRepository;
 import com.razorpay.merchant.service.ApiKeyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,16 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     private final MerchantRepository merchantRepository;
     private final GlobalMerchantMapper mapper;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    private final ApiKeyCacheImpl apiKeyCache;
+
+    @Value("${api-key.keyId-length: 24}")
+    private Integer keyIdLength;
+
+    @Value("${api-key.rawSecret-length: 40}")
+    private Integer rawSecretLength;
+
+    @Value("${api-key.gracePeriod-expiry-time-in-hour: 24}")
+    private Integer gracePeriodTime;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -44,10 +56,10 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                 "_",
                 "rzp",
                 request.environment().name().toLowerCase(),
-                RandomizerUtil.randomBase64(24)
+                RandomizerUtil.randomBase64(keyIdLength)
         );
 
-        String rawSecret = RandomizerUtil.randomBase64(40);
+        String rawSecret = RandomizerUtil.randomBase64(rawSecretLength);
 
         ApiKey apiKey = ApiKey.builder()
                 .merchant(merchant)
@@ -71,12 +83,15 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public DeleteResponse revokeApiKeyByMerchantId(UUID merchantId, String keyId) {
+    public DeleteResponse revokeApiKeyByMerchantId(UUID merchantId, UUID keyId) {
 
         ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndKeyId(merchantId, keyId)
                 .orElseThrow(() -> new ResourceNotFoundException("API_Key", keyId));
 
         apiKey.setEnabled(false);
+
+        // Redis cache evict on revoke key
+        apiKeyCache.evict(apiKey.getKeyId());
 
         // Optional: apiKeyRepository.save(apiKey);
         // When this method ends, @Transactional commits,
@@ -88,7 +103,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public CreateApiKeyResponse rotateApiKeyByMerchantId(UUID merchantId, String keyId) {
+    public CreateApiKeyResponse rotateApiKeyByMerchantId(UUID merchantId, UUID keyId) {
 
         ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndKeyId(merchantId, keyId)
                 .orElseThrow(() -> new ResourceNotFoundException("API_Key", keyId));
@@ -97,11 +112,14 @@ public class ApiKeyServiceImpl implements ApiKeyService {
             throw new BusinessRuleViolationException("Cannot rotate API key [%s] because it is disabled or revoked.".formatted(keyId),
                     "keyId", keyId);
 
-        String newRawSecret = RandomizerUtil.randomBase64(40);
+        String newRawSecret = RandomizerUtil.randomBase64(rawSecretLength);
         apiKey.setPreviousKeySecretHash(apiKey.getKeySecretHash());
         apiKey.setKeySecretHash(bCryptPasswordEncoder.encode(newRawSecret));
         apiKey.setRotatedAt(LocalDateTime.now());
-        apiKey.setGracePeriodExpiredAt(LocalDateTime.now().plusHours(24));
+        apiKey.setGracePeriodExpiredAt(LocalDateTime.now().plusHours(gracePeriodTime));
+
+        // Redis cache evict on rotate key
+        apiKeyCache.evict(apiKey.getKeyId());
 
         apiKeyRepository.save(apiKey);
 

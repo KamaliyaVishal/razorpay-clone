@@ -1,6 +1,7 @@
 package com.razorpay.merchant.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record DeleteResponse(
         String status,
@@ -9,7 +10,7 @@ public record DeleteResponse(
 ) {
 
     // Static factory method accepting any entity type
-    public static <T> DeleteResponse fromEntity(T entity, String identifier) {
+    public static <T> DeleteResponse fromEntity(T entity, UUID identifier) {
         String entityName = entity.getClass().getSimpleName();
 
         return new DeleteResponse(

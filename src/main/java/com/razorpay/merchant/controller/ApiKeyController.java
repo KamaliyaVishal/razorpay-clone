@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/merchants/api-keys")
@@ -35,13 +36,13 @@ public class ApiKeyController {
     }
 
     @DeleteMapping("/{keyId}")
-    public ResponseEntity<DeleteResponse> revokeApiKey(@PathVariable String keyId) {
+    public ResponseEntity<DeleteResponse> revokeApiKey(@PathVariable UUID keyId) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(apiKeyService.revokeApiKeyByMerchantId(merchantContext.getMerchantId(), keyId));
     }
 
     @PostMapping("/{keyId}/rotate")
-    public ResponseEntity<CreateApiKeyResponse> rotateApiKey(@PathVariable String keyId) {
+    public ResponseEntity<CreateApiKeyResponse> rotateApiKey(@PathVariable UUID keyId) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(apiKeyService.rotateApiKeyByMerchantId(merchantContext.getMerchantId(), keyId));
     }
