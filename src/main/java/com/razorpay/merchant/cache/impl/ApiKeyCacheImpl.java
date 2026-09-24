@@ -11,17 +11,17 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class ApiKeyCacheImpl implements ApiKeyCache {
 
-    @Value("${data.redis.ttl-duration : 5}")
-    private static Long ttlDuration;
+    @Value("${data.redis.ttl-duration:5}")
+    private Long ttlDuration;
 
     private static final String PREFIX = "apikey:";
-    private static final Duration TTL = Duration.ofMinutes(ttlDuration);
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
 
@@ -43,7 +43,7 @@ public class ApiKeyCacheImpl implements ApiKeyCache {
             stringRedisTemplate.opsForValue().set(
                     PREFIX + keyId,
                     objectMapper.writeValueAsString(apiKeyCacheEntry),
-                    TTL);
+                    Duration.ofMinutes(ttlDuration));
         } catch (Exception e) {
             log.warn("ApiKey cache put failed, keyId: {}", keyId);
         }
