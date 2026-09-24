@@ -4,10 +4,15 @@ spring:
 
   # PostgresSQL Database Connection Settings
   datasource:
-    url: jdbc:postgresql://localhost:5432/razorpayDB
-    username: postgres
-    password: admin
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/razorpayDB}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:admin}
     driver-class-name: org.postgresql.Driver
+  data.redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    ttl-duration: 5
 
   # JPA / Hibernate Configurations
   jpa:

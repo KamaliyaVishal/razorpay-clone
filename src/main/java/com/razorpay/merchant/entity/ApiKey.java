@@ -54,4 +54,8 @@ public class ApiKey extends BaseEntity {
     @Column(name = "grace_period_expired_at")
     private LocalDateTime gracePeriodExpiredAt;
 
+    public boolean isInGracePeriod() {
+        return gracePeriodExpiredAt != null && LocalDateTime.now().isBefore(gracePeriodExpiredAt);
+    }
+
 }
