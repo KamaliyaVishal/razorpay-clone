@@ -53,3 +53,11 @@ api-key:
 
 jwt:
   secret-key: 7yH8zX$mK#q2wB!vE9xZ6*fN3sU1pA5jD8cK0mQ!rT4vW9zB2xY5
+
+
+app:
+  rate-limit:
+    method: fixed
+    use-case:
+      api-key:
+        requests-per-minute: 30

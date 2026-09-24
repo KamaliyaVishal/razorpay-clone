@@ -1,5 +1,10 @@
 package com.razorpay.merchant.security;
 
+import com.razorpay.common.exception.BusinessRuleViolationException;
+import com.razorpay.common.exception.RateLimitException;
+import com.razorpay.common.ratelimiter.RateLimitResult;
+import com.razorpay.common.ratelimiter.RateLimiter;
+import com.razorpay.common.ratelimiter.impl.FixedWindowRateLimiter;
 import com.razorpay.merchant.cache.ApiKeyCacheEntry;
 import com.razorpay.merchant.cache.impl.ApiKeyCacheImpl;
 import com.razorpay.merchant.entity.ApiKey;
@@ -11,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,6 +42,10 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     private final MerchantContext merchantContext;
     private final HandlerExceptionResolver handlerExceptionResolver;
     private final ApiKeyCacheImpl apiKeyCache;
+    private final FixedWindowRateLimiter fixedWindowRateLimiter;
+
+    @Value("${app.rate-limit.use-case.api-key.requests-per-minute: 60}")
+    private Integer requestsPerMinute;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -56,11 +66,25 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
             String keyId = credential[0];
             String keySecret = credential[1];
 
+            // Redis Caching
             ApiKeyCacheEntry apiKeyCacheEntry = apiKeyCache.get(keyId)
                     .orElseGet(() -> loadAndCacheApiKey(keyId));
 
             if (apiKeyCacheEntry != null && !apiKeyCacheEntry.enabled() && !isSecretKeyValid(apiKeyCacheEntry, keySecret))
                 throw new BadRequestException("Invalid or missing API-KEY");
+            // End
+
+            // Rate Limiter
+            RateLimitResult rateLimitResult = fixedWindowRateLimiter.check("apiKey:" + keyId,
+                    requestsPerMinute, 60);
+
+            if (!rateLimitResult.isAllowed()) {
+                log.warn("Too many requests keyId={}", keyId);
+                throw new RateLimitException("Too many requests", rateLimitResult.retryAfterSeconds());
+            }
+            response.setHeader("X-RateLimit-Limit", String.valueOf(requestsPerMinute));
+            response.setHeader("X-RateLimit-Remaining", String.valueOf(rateLimitResult.remaining()));
+            // END
 
             var auth = new UsernamePasswordAuthenticationToken(keyId, null,
                     List.of(new SimpleGrantedAuthority("API_KEY_ROLE"))
