@@ -1,9 +1,7 @@
 package com.razorpay.merchant.security;
 
-import com.razorpay.common.exception.BusinessRuleViolationException;
 import com.razorpay.common.exception.RateLimitException;
 import com.razorpay.common.ratelimiter.RateLimitResult;
-import com.razorpay.common.ratelimiter.RateLimiter;
 import com.razorpay.common.ratelimiter.impl.FixedWindowRateLimiter;
 import com.razorpay.merchant.cache.ApiKeyCacheEntry;
 import com.razorpay.merchant.cache.impl.ApiKeyCacheImpl;
@@ -29,7 +27,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
