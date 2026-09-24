@@ -37,7 +37,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     public CreateApiKeyResponse create(UUID merchantId, CreateApiKeyRequest request) {
 
         Merchant merchant = merchantRepository.findById(merchantId)
-                .orElseThrow(() -> new ResourceNotFoundException("merchant", merchantId));
+                .orElseThrow(() -> new ResourceNotFoundException("Merchant", merchantId));
 
 
         String keyId = String.join(
