@@ -29,7 +29,7 @@ public class JwtUtil {
                 .subject(email)
                 .claim("merchantId", merchantId)
                 .claim("role", role)
-                .expiration(Date.from(now.minusSeconds(60 * 100)))
+                .expiration(Date.from(now.plusSeconds(60 * 100)))
                 .compact();
     }
 
@@ -38,6 +38,14 @@ public class JwtUtil {
                 .verifyWith(getSecretKey())
                 .build()
                 .parseSignedClaims(accessToken).getPayload();
+    }
+
+    public String extractRole(Claims claims) {
+        return claims.get("role", String.class);
+    }
+
+    public String extractMerchantId(Claims claims) {
+        return claims.get("merchantId", String.class);
     }
 
 }

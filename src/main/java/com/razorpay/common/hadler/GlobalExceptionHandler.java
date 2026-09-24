@@ -59,12 +59,12 @@ public class GlobalExceptionHandler {
     }
 
     // PRODUCTION SAFETY NET: Protects logs and hides low-level internal driver exceptions
-    // @ExceptionHandler(Exception.class)
+    @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpectedFailures(Exception exception) {
         log.error("System Failure tracked: ", exception);
         ErrorResponse response = ErrorResponse.of(
                 ErrorCode.INTERNAL_SERVER_ERROR.name(),
-                ErrorCode.INTERNAL_SERVER_ERROR.getDefaultDescription()
+                exception.getMessage()
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
