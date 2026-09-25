@@ -81,7 +81,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public DeleteResponse revokeApiKeyByMerchantId(UUID merchantId, UUID keyId) {
+    public DeleteResponse revokeApiKeyByMerchantId(UUID merchantId, String keyId) {
 
         ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndKeyId(merchantId, keyId)
                 .orElseThrow(() -> new ResourceNotFoundException("API_Key", keyId));
@@ -101,7 +101,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public CreateApiKeyResponse rotateApiKeyByMerchantId(UUID merchantId, UUID keyId) {
+    public CreateApiKeyResponse rotateApiKeyByMerchantId(UUID merchantId, String keyId) {
 
         ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndKeyId(merchantId, keyId)
                 .orElseThrow(() -> new ResourceNotFoundException("API_Key", keyId));
