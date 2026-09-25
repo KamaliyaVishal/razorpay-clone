@@ -29,6 +29,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PaymentServiceImpl implements PaymentService {
 
     private final OrderRepository orderRepository;
@@ -38,10 +39,22 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentTransitionService paymentTransitionService;
 
     @Override
+    /**
+     * Why do we explicitly write rollbackFor = Exception.class?
+     * By default, Spring’s standard @Transactional annotation only rolls back for unchecked exceptions (subclasses of RuntimeException and Error, like NullPointerException or IllegalArgumentException).
+     * It will not roll back your database if a checked exception occurs (subclasses of Exception that you are forced to catch or declare, such as IOException, SQLException, or custom business exceptions).
+     * By writing rollbackFor = Exception.class, you change this behavior to be 100% bulletproof. It forces Spring to roll back the database for every single type of exception—both checked and unchecked.
+     */
+    @Transactional(rollbackFor = Exception.class)
     public PaymentResponse initiatePayment(UUID merchantId, PaymentInitRequest request) {
 
         // Validate the order before payment
-        OrderRecord order = orderRepository.findByMerchantIdAndId(merchantId, request.orderId())
+        //OrderRecord order = orderRepository.findByMerchantIdAndId(merchantId, request.orderId())
+        //        .orElseThrow(() -> new ResourceNotFoundException("OrderId", request.orderId()));
+
+
+        // @Lock(LockModeType.PESSIMISTIC_WRITE) : used to block concurrent updates on a specific database record.
+        OrderRecord order = orderRepository.findByMerchantIdAndIdForUpdate(merchantId, request.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException("OrderId", request.orderId()));
 
         if (!Set.of(OrderStatus.CREATED, OrderStatus.ATTEMPTED).contains(order.getStatus()))
@@ -100,9 +113,14 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public PaymentResponse capturePayment(UUID merchantId, UUID paymentId) {
 
-        Payment payment = paymentRepository.findByMerchantIdAndId(merchantId, paymentId)
+        //Payment payment = paymentRepository.findByMerchantIdAndId(merchantId, paymentId)
+        //       .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+
+        // @Lock(LockModeType.PESSIMISTIC_WRITE) : used to block concurrent updates on a specific database record.
+        Payment payment = paymentRepository.findByMerchantIdAndIdForUpdate(merchantId, paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
 
         // Do not set payment states directly; use the state machine instead to prevent unintended state transitions.
@@ -136,7 +154,10 @@ public class PaymentServiceImpl implements PaymentService {
     public void resolveAuthorization(UUID paymentId, boolean approve, String bankRef,
                                      String errorCode, String errorDescription) {
 
-        Payment payment = paymentRepository.findById(paymentId)
+        //Payment payment = paymentRepository.findById(paymentId)
+        //       .orElseThrow(() -> new ResourceNotFoundException("PaymentId", paymentId));
+
+        Payment payment = paymentRepository.findByIdForUpdate(paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException("PaymentId", paymentId));
 
         if (payment.getStatus() != PaymentStatus.AUTHORIZING) {

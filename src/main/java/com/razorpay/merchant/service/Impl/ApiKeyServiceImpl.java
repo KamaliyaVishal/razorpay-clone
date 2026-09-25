@@ -48,9 +48,10 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     @Transactional(rollbackFor = Exception.class)
     public CreateApiKeyResponse create(UUID merchantId, CreateApiKeyRequest request) {
 
+        // Don't require @Lock(LockModeType.PESSIMISTIC_WRITE) as unique key constraints
+        // won't let concurrent requests generate duplicate keys; instead, it will throw a Duplicate Resource exception.
         Merchant merchant = merchantRepository.findById(merchantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Merchant", merchantId));
-
 
         String keyId = String.join(
                 "_",
@@ -75,10 +76,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     public List<ApiKeyResponse> fetchAllApiKeys(UUID merchantId) {
-
-        List<ApiKey> apiKeys = apiKeyRepository.findAllByMerchantId(merchantId);
-
-        return mapper.toApiKeyResponseList(apiKeys);
+        return mapper.toApiKeyResponseList(apiKeyRepository.findAllByMerchantId(merchantId));
     }
 
     @Override
