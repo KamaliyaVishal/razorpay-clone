@@ -28,7 +28,7 @@ public class FixedWindowRateLimiter implements RateLimiter {
     @Override
     public RateLimitResult check(String key, int maxRequestAllowed, long retryAfterSeconds) {
 
-        String redisKey = "rateLimit:fixed_" + key;
+        String redisKey = "rateLimit:fixed" + key;
         Long count = redisTemplate.opsForValue().increment(redisKey);
 
         // Fallback protection: If Redis fails to return a count, fail-safe by letting the request pass.
