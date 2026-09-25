@@ -21,7 +21,7 @@ public class CardToken extends BaseEntity {
     @Column(nullable = false)
     private UUID id;
 
-    @Column(name = "customer_id", nullable = false)
+    @Column(name = "customer_id")
     private UUID customerId;
 
     @Column(name = "merchant_id", nullable = false)
