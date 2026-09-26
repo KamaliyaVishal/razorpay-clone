@@ -1,5 +1,6 @@
 package com.razorpay.payment.service.Impl;
 
+import com.razorpay.common.enums.EventAggregateType;
 import com.razorpay.common.enums.OrderStatus;
 import com.razorpay.common.enums.PaymentEvent;
 import com.razorpay.common.enums.PaymentStatus;
@@ -10,6 +11,7 @@ import com.razorpay.payment.dto.response.PaymentResponse;
 import com.razorpay.payment.entity.OrderRecord;
 import com.razorpay.payment.entity.Payment;
 import com.razorpay.payment.mapper.GlobalPaymentMapper;
+import com.razorpay.payment.outbox.OutboxEventPublisher;
 import com.razorpay.payment.payment_gateway.PaymentGatewayRouter;
 import com.razorpay.payment.payment_gateway.dto.PaymentRequest;
 import com.razorpay.payment.payment_gateway.dto.PaymentResult;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -37,6 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentGatewayRouter paymentGatewayRouter;
     private final GlobalPaymentMapper mapper;
     private final PaymentTransitionService paymentTransitionService;
+    private final OutboxEventPublisher outboxEventPublisher;
 
     @Override
     /**
@@ -109,6 +113,16 @@ public class PaymentServiceImpl implements PaymentService {
         payment = paymentRepository.save(payment);
         orderRepository.save(order);
 
+        outboxEventPublisher.publish(EventAggregateType.PAYMENT, payment.getId(), "PAYMENT_CREATED",
+                Map.of("orderId", order.getId().toString(),
+                        "paymentId", payment.getId().toString(),
+                        "merchantId", merchantId.toString(),
+                        "paymentStatus", payment.getStatus().name(),
+                        "amountUnits", order.getAmount().getAmountUnits(),
+                        "amountCurrency", order.getAmount().getCurrency(),
+                        "paymentMethod", payment.getMethodDetails()
+                )
+        );
         return mapper.toPaymentResponse(payment);
     }
 
@@ -146,7 +160,18 @@ public class PaymentServiceImpl implements PaymentService {
             }
         }
 
-        return null;
+        outboxEventPublisher.publish(EventAggregateType.PAYMENT, payment.getId(), "PAYMENT_STATUS_CHANGED",
+                Map.of("orderId", payment.getOrderRecord().getId().toString(),
+                        "paymentId", payment.getId().toString(),
+                        "merchantId", merchantId.toString(),
+                        "paymentStatus", payment.getStatus().name(),
+                        "amountUnits", payment.getAmount().getAmountUnits(),
+                        "amountCurrency", payment.getAmount().getCurrency(),
+                        "paymentMethod", payment.getPaymentMethod()
+                )
+        );
+
+        return mapper.toPaymentResponse(payment);
     }
 
     @Override
@@ -200,6 +225,17 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentRepository.save(payment);
         orderRepository.save(orderRecord);
+
+        outboxEventPublisher.publish(EventAggregateType.PAYMENT, payment.getId(), "PAYMENT_STATUS_CHANGED",
+                Map.of("orderId", payment.getOrderRecord().getId().toString(),
+                        "paymentId", payment.getId().toString(),
+                        "merchantId", payment.getMerchantId().toString(),
+                        "paymentStatus", payment.getStatus().name(),
+                        "amountUnits", payment.getAmount().getAmountUnits(),
+                        "amountCurrency", payment.getAmount().getCurrency(),
+                        "paymentMethod", payment.getPaymentMethod()
+                )
+        );
     }
 }
 
