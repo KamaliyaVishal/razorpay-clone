@@ -35,13 +35,13 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
     private final ApiKeyCacheImpl apiKeyCache;
 
-    @Value("${api-key.keyId-length: 24}")
+    @Value("${app.api-key.keyId-length: 24}")
     private Integer keyIdLength;
 
-    @Value("${api-key.rawSecret-length: 40}")
+    @Value("${app.api-key.rawSecret-length: 40}")
     private Integer rawSecretLength;
 
-    @Value("${api-key.gracePeriod-expiry-time-in-hour: 24}")
+    @Value("${app.api-key.gracePeriod-expiry-time-in-hour: 24}")
     private Integer gracePeriodTime;
 
     @Override
