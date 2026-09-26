@@ -28,7 +28,7 @@ spring:
   kafka:
     listener:
       ack-mode: manual
-    bootstrap-servers: ${KAFKA_BROKERS:localhost:29092}
+    bootstrap-servers: ${KAFKA_BROKERS:localhost:9092}
     producer:
       # 'all' means the leader broker waits for all in-sync replicas (ISRs) to acknowledge the write.
       acks: all

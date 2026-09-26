@@ -24,7 +24,7 @@ public class OutboxPuller {
     private final KafkaProperties kafkaProperties;
     private final OutboxResultHandler outboxResultHandler;
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelay = 10000)
     public void pull() {
 
         List<OutboxEvent> pendingEvents = outboxEventRepository.findByStatusOrderByCreatedAtAsc(OutboxStatus.PENDING);

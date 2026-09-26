@@ -72,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
 
         order = orderRepository.save(order);
 
-        outboxEventPublisher.publish(EventAggregateType.ORDER, order.getId(), "OrderServiceImpl",
+        outboxEventPublisher.publish(EventAggregateType.ORDER, order.getId(), "ORDER_CREATED",
                 Map.of("orderId", order.getId().toString(),
                         "merchantId", merchantId.toString(),
                         "orderStatus", order.getStatus().name(),
