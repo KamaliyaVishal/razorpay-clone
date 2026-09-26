@@ -1,5 +1,6 @@
 package com.razorpay.payment.service.Impl;
 
+import com.razorpay.common.enums.EventAggregateType;
 import com.razorpay.common.enums.OrderStatus;
 import com.razorpay.common.exception.DuplicateResourceException;
 import com.razorpay.common.exception.BusinessRuleViolationException;
@@ -11,6 +12,7 @@ import com.razorpay.payment.dto.response.PaymentResponse;
 import com.razorpay.payment.entity.OrderRecord;
 import com.razorpay.payment.entity.Payment;
 import com.razorpay.payment.mapper.GlobalPaymentMapper;
+import com.razorpay.payment.outbox.OutboxEventPublisher;
 import com.razorpay.payment.repository.OrderRepository;
 import com.razorpay.payment.repository.PaymentRepository;
 import com.razorpay.payment.service.OrderService;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentRepository paymentRepository;
     private final GlobalPaymentMapper mapper;
     private final CustomerService customerService;
+    private final OutboxEventPublisher outboxEventPublisher;
 
     @Value("${payment.order.default-order-expiry-minutes : 30}")
     private int defaultOrderExpiryMinutes;
@@ -66,7 +70,16 @@ public class OrderServiceImpl implements OrderService {
                         : LocalDateTime.now().plusMinutes(defaultOrderExpiryMinutes))
                 .build();
 
-        orderRepository.save(order);
+        order = orderRepository.save(order);
+
+        outboxEventPublisher.publish(EventAggregateType.ORDER, order.getId(), "OrderServiceImpl",
+                Map.of("orderId", order.getId().toString(),
+                        "merchantId", merchantId.toString(),
+                        "orderStatus", order.getStatus().name(),
+                        "amountUnits", order.getAmount().getAmountUnits(),
+                        "amountCurrency", order.getAmount().getCurrency()
+                )
+        );
 
         return mapper.toOrderResponse(order);
     }
@@ -85,25 +98,29 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(rollbackFor = Exception.class)
     public OrderResponse cancelOrder(UUID merchantId, UUID orderId) {
 
-        OrderRecord orderRecord = findOrderById(merchantId, orderId);
+        OrderRecord order = findOrderById(merchantId, orderId);
 
-        if (Set.of(OrderStatus.CANCELLED, OrderStatus.PAID).contains(orderRecord.getStatus()))
+        if (Set.of(OrderStatus.CANCELLED, OrderStatus.PAID).contains(order.getStatus()))
             throw new BusinessRuleViolationException("This order cannot be cancelled because it is already paid or cancelled",
-                    "OrderStatus", orderRecord.getStatus());
+                    "OrderStatus", order.getStatus());
 
-        orderRecord.setStatus(OrderStatus.CANCELLED);
-        orderRepository.save(orderRecord);
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
 
-        return mapper.toOrderResponse(orderRecord);
+        outboxEventPublisher.publish(EventAggregateType.ORDER, order.getId(), "ORDER_CANCELLED",
+                Map.of("orderId", order.getId(),
+                        "merchantId", merchantId.toString(),
+                        "orderStatus", order.getStatus().name(),
+                        "amountUnits", order.getAmount().getAmountUnits(),
+                        "amountCurrency", order.getAmount().getCurrency()
+                )
+        );
+        return mapper.toOrderResponse(order);
     }
 
     @Override
     public List<PaymentResponse> listPayments(UUID merchantId, UUID orderId) {
-
-        OrderRecord orderRecord = findOrderById(merchantId, orderId);
-
-        List<Payment> payments = paymentRepository.findAllByOrderRecord_Id(orderId);
-
-        return mapper.toPaymentResponseList(payments);
+        //OrderRecord orderRecord = findOrderById(merchantId, orderId);
+        return mapper.toPaymentResponseList(paymentRepository.findAllByOrderRecord_Id(orderId));
     }
 }
