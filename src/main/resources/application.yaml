@@ -24,6 +24,35 @@ spring:
         #format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  # Kafka Configurations
+  kafka:
+    listener:
+      ack-mode: manual
+    bootstrap-servers: ${KAFKA_BROKERS:localhost:29092}
+    producer:
+      # 'all' means the leader broker waits for all in-sync replicas (ISRs) to acknowledge the write.
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+        # The maximum number of unacknowledged requests the client will send on a single connection before blocking.
+        max.in.flight.requests.per.connection: 5
+        retries: 3
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: razorpay-monolith
+      auto-offset-reset: earliest
+      # Paired with 'ack-mode: manual', this ensures you only commit offsets after processing succeeds.
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.razorpay.*"
+        spring.json.use.type.headers: false
+        # Because type headers are ignored, this forces the consumer to parse the JSON value into a generic LinkedHashMap instead of mapping it to a specific strict Java class.
+        spring.json.value.default.type: java.util.LinkedHashMap
+
 vault:
   master-key: X7vG9mQK2zYWpB4s5uRtE1dF3nG6hJ8kLmNpQrStUvW=
   randomToken-length: 32
