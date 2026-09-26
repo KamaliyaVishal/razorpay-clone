@@ -13,7 +13,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-@Getter
+@Table(name = "outbox_event", indexes = {
+        @Index(name = "idx_outbox_event_id_status", columnList = "id, status"),
+})@Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
