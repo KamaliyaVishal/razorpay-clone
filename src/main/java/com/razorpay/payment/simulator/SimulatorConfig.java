@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@ConfigurationProperties(prefix = "payment.simulator")
+@ConfigurationProperties(prefix = "app.payment.simulator")
 @Getter
 @Setter
 public class SimulatorConfig {

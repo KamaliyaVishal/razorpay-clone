@@ -41,7 +41,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     private final ApiKeyCacheImpl apiKeyCache;
     private final FixedWindowRateLimiter fixedWindowRateLimiter;
 
-    @Value("${app.rate-limit.use-case.api-key.requests-per-minute: 60}")
+    @Value("${app.rate-limit.use-case.api-key.requests-per-minute:60}")
     private Integer requestsPerMinute;
 
     @Override

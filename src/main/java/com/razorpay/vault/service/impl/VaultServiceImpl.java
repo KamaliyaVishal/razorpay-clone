@@ -41,7 +41,7 @@ public class VaultServiceImpl implements VaultService {
     private final BytesEncryptor dekEncryptor;
     private final PaymentProcessorRouter paymentProcessorRouter;
 
-    @Value("${vault.randomToken-length: 32}")
+    @Value("${app.vault.randomToken-length:32}")
     private Integer tokenLength;
 
     @Override

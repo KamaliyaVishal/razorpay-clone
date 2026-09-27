@@ -14,7 +14,7 @@ import java.util.Base64;
 @Configuration
 public class VaultEncryptionConfig {
 
-    @Value("${vault.master-key}")
+    @Value("${app.vault.master-key}")
     private String masterKey;
 
     public static BytesEncryptor panEncryptor(byte[] dek) {

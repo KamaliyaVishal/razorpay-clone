@@ -39,7 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final CustomerService customerService;
     private final OutboxEventPublisher outboxEventPublisher;
 
-    @Value("${payment.order.default-order-expiry-minutes : 30}")
+    @Value("${payment.order.default-order-expiry-minutes:30}")
     private int defaultOrderExpiryMinutes;
 
     @Override

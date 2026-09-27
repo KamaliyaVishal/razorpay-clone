@@ -53,28 +53,6 @@ spring:
         # Because type headers are ignored, this forces the consumer to parse the JSON value into a generic LinkedHashMap instead of mapping it to a specific strict Java class.
         spring.json.value.default.type: java.util.LinkedHashMap
 
-vault:
-  master-key: X7vG9mQK2zYWpB4s5uRtE1dF3nG6hJ8kLmNpQrStUvW=
-  randomToken-length: 32
-
-payment:
-  simulator:
-    poll-interval-ms: 5000
-    chaos-mode: SUCCESS
-    methods:
-      CARD:
-        min-delay-seconds: 2
-        max-delay-seconds: 6
-        success-rate: 90
-      UPI:
-        min-delay-seconds: 1
-        max-delay-seconds: 3
-        success-rate: 95
-      NET_BANKING:
-        min-delay-seconds: 4
-        max-delay-seconds: 10
-        success-rate: 80
-
 app:
   jwt:
     secret-key: 7yH8zX$mK#q2wB!vE9xZ6*fN3sU1pA5jD8cK0mQ!rT4vW9zB2xY5
@@ -93,3 +71,25 @@ app:
       order: orders.events
       refund: refund.events
       settlement: settlement.events
+  vault:
+    master-key: X7vG9mQK2zYWpB4s5uRtE1dF3nG6hJ8kLmNpQrStUvW=
+    randomToken-length: 32
+  merchant:
+    randomToken-length: 32
+  payment:
+    simulator:
+      poll-interval-ms: 5000
+      chaos-mode: SUCCESS
+      methods:
+        CARD:
+          min-delay-seconds: 2
+          max-delay-seconds: 6
+          success-rate: 90
+        UPI:
+          min-delay-seconds: 1
+          max-delay-seconds: 3
+          success-rate: 95
+        NET_BANKING:
+          min-delay-seconds: 4
+          max-delay-seconds: 10
+          success-rate: 80

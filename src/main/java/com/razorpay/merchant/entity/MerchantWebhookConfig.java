@@ -29,8 +29,8 @@ public class MerchantWebhookConfig extends BaseEntity {
     @Column(name = "target_url", nullable = false, length = 500)
     private String targetUrl;
 
-    @Column(name = "webhook_secret_hash", nullable = false, length = 255)
-    private String webhookSecretHash;
+    @Column(name = "webhook_secret", nullable = false, length = 255)
+    private String webhookSecret;
 
     @Column(name = "enabled")
     private boolean enabled = true;
