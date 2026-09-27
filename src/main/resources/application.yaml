@@ -93,3 +93,5 @@ app:
           min-delay-seconds: 4
           max-delay-seconds: 10
           success-rate: 80
+  webhook.delivery:
+    redis-key: webhook-retry

@@ -28,6 +28,7 @@ public class WebhookKafkaConsumer {
     private final ObjectMapper objectMapper;
     private final SignerUtil signerUtil;
     private final WebhookEventRepository webhookEventRepository;
+    private final WebhookRetryQueue webhookRetryQueue;
 
     @KafkaListener(topics = {
             "${app.kafka.topics.payments:payments.events}",
@@ -73,6 +74,14 @@ public class WebhookKafkaConsumer {
                         .build();
 
                 webhookEvent = webhookEventRepository.save(webhookEvent);
+
+                /* Offloads webhook processing to a Redis queue instead of making a direct synchronous HTTP call to avoid synchronous HTTP overhead.
+                     This design addresses three critical concurrency concerns:
+                     1. Mitigates HTTP socket/connection pool exhaustion during high-traffic peak events (e.g., flash sales).
+                     2. Shortens database transaction lifecycles by removing external network latency from the execution thread.
+                     3. Prevents thread blocking and reduces system overhead under heavy concurrent request volumes.
+                */
+                webhookRetryQueue.enqueue(webhookEvent.getId(), webhookEvent.getNextRetryAt());
 
                 log.info("Created a webhook event with id: {}", webhookEvent.getId());
             }
