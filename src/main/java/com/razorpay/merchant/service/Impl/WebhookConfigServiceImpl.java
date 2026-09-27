@@ -35,7 +35,6 @@ public class WebhookConfigServiceImpl implements WebhookConfigService {
     @Value("${app.merchant.randomToken-length:32}")
     private Integer tokenLength;
 
-
     @Override
     public WebhookConfigResponse create(UUID merchantId, UpdateWebhookConfigRequest request) {
         Merchant merchant = merchantRepository.findById(merchantId)
@@ -44,8 +43,7 @@ public class WebhookConfigServiceImpl implements WebhookConfigService {
         String rawSecret = RandomizerUtil.randomBase64(tokenLength);
         byte[] rawSecretBytes = rawSecret.getBytes(StandardCharsets.UTF_8);
 
-        String encryptedSecret = Base64.getEncoder().encodeToString
-                (bytesEncryptor.encrypt(rawSecretBytes));
+        String encryptedSecret = Base64.getEncoder().encodeToString(bytesEncryptor.encrypt(rawSecretBytes));
 
         MerchantWebhookConfig config = MerchantWebhookConfig.builder()
                 .merchant(merchant)
