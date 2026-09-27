@@ -95,3 +95,4 @@ app:
           success-rate: 80
   webhook.delivery:
     redis-key: webhook-retry
+    poll-batch-size: 100
