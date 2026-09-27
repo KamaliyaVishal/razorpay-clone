@@ -37,9 +37,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public MerchantResponse signUpMerchant(MerchantRequest request) {
-        if (appUserRepository.existsByEmail(request.email())) {
+        if (merchantRepository.existsByEmail(request.email()))
             throw new DuplicateResourceException("Merchant with Email already exists", "Email", request.email());
-        }
 
         //Save the merchant and user details to the database and return the response
         Merchant merchant = mapper.fromMerchantRequest(request);

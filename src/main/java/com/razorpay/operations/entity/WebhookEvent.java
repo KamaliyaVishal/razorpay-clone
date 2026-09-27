@@ -56,4 +56,11 @@ public class WebhookEvent extends BaseEntity {
     @Column(name = "last_response_body")
     private String lastResponseBody;
 
+    @Column(name = "next_retry_at")
+    private LocalDateTime nextRetryAt;
+
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
+
 }

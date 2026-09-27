@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class OutboxPuller {
+public class OutboxPoller {
 
     private final OutboxEventRepository outboxEventRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -25,7 +25,7 @@ public class OutboxPuller {
     private final OutboxResultHandler outboxResultHandler;
 
     @Scheduled(fixedDelay = 10000)
-    public void pull() {
+    public void poll() {
 
         List<OutboxEvent> pendingEvents = outboxEventRepository.findByStatusOrderByCreatedAtAsc(OutboxStatus.PENDING);
 
