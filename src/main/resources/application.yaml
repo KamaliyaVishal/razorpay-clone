@@ -52,6 +52,9 @@ spring:
         spring.json.use.type.headers: false
         # Because type headers are ignored, this forces the consumer to parse the JSON value into a generic LinkedHashMap instead of mapping it to a specific strict Java class.
         spring.json.value.default.type: java.util.LinkedHashMap
+  threads:
+    virtual:
+      enabled: true
 
 app:
   jwt:
@@ -96,3 +99,4 @@ app:
   webhook.delivery:
     redis-key: webhook-retry
     poll-batch-size: 100
+    signature-header: X-Razorpay-Signature
