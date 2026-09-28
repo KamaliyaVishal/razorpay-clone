@@ -27,6 +27,7 @@ public class WebhookDeliverExecutor {
     private final WebhookEventRepository webhookEventRepository;
     private final WebhookRetryQueue webhookRetryQueue;
     private final RestClient restClient;
+    private final WebhookDlqRecorder webhookDlqRecorder;
 
     private static final List<Duration> BACKOFF = List.of(
             Duration.ofMinutes(1), Duration.ofMinutes(5), Duration.ofMinutes(30),
@@ -90,7 +91,7 @@ public class WebhookDeliverExecutor {
 
         if (event.getAttemptCount() >= MAX_ATTEMPTS) {
             event.setStatus(WebhookEventStatus.DEAD);
-
+            webhookDlqRecorder.recordAfterAttemptsExhausted(event, error);
             return;
         }
 
