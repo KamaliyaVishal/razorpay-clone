@@ -27,6 +27,10 @@ public class WebhookDlqRecorder {
     public void recordAfterAttemptsExhausted(WebhookEvent webhookEvent, String finalError) {
         log.debug("Recording the dlq event with webhookEventID: {}", webhookEvent.getId());
 
+        /**
+         * In production, the DLQ/event store may reside in a separate database (e.g., an AWS-managed SQL database) to isolate it from the primary database.
+         * This ensures that if the primary DB is unavailable, failed webhook events can still be persisted to the DLQ without depending on the failing database.
+         */
         webhookEvent.setStatus(WebhookEventStatus.DEAD);
         webhookEventRepository.save(webhookEvent);
 
