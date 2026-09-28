@@ -41,6 +41,8 @@ public class WebhookKafkaConsumer {
     })
     public void onWebhookEvent(ConsumerRecord<String, Map<String, Object>> record, Acknowledgment ack) {
         try {
+            log.info("Consuming a webhook event with record: {}", record);
+
             // see the OutboxPoller where we define these fields and send  to kafka
             Map<String, Object> envelope = record.value();
             Map<String, Object> data = (Map<String, Object>) envelope.get("data");
@@ -57,7 +59,7 @@ public class WebhookKafkaConsumer {
 
             List<WebhookTarget> targets = merchantLookupService.getActiveConfigsForEvent(merchantId, eventType);
             if (targets.isEmpty()) {
-                log.debug("No webhook target was found, skipping event: {}", eventType);
+                log.info("No webhook target was found, skipping event: {}", eventType);
                 ack.acknowledge();
                 return;
             }

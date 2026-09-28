@@ -72,8 +72,8 @@ app:
     topics:
       payment: payments.events
       order: orders.events
-      refund: refund.events
-      settlement: settlement.events
+      refund: refunds.events
+      settlement: settlements.events
   vault:
     master-key: X7vG9mQK2zYWpB4s5uRtE1dF3nG6hJ8kLmNpQrStUvW=
     randomToken-length: 32

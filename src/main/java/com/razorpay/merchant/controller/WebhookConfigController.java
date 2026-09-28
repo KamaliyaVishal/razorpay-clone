@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v1/merchants/webhooks")
+@RequestMapping("api/v1/merchants/webhooks")
 @RequiredArgsConstructor
 public class WebhookConfigController {
 

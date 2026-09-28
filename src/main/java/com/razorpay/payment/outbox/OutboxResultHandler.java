@@ -23,7 +23,7 @@ public class OutboxResultHandler {
         outboxEventRepository.save(outboxEvent);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void handleEventFailed(OutboxEvent outboxEvent, String errorMessage) {
         outboxEvent.setAttempts(outboxEvent.getAttempts() + 1);
         outboxEvent.setLastError(

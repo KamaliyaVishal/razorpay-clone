@@ -28,6 +28,7 @@ public class OutboxPoller {
     public void poll() {
 
         List<OutboxEvent> pendingEvents = outboxEventRepository.findByStatusOrderByCreatedAtAsc(OutboxStatus.PENDING);
+        log.info("Polling outbox event and sent to Kafka, Pending Events count: {}", pendingEvents.size());
 
         for (OutboxEvent event : pendingEvents) {
             try {
