@@ -90,7 +90,7 @@ public class WebhookDeliverExecutor {
 
         if (event.getAttemptCount() >= MAX_ATTEMPTS) {
             event.setStatus(WebhookEventStatus.DEAD);
-            // TODO: handle DLQ
+
             return;
         }
 

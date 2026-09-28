@@ -48,8 +48,8 @@ public class WebhookDeliveryScheduler {
         if (due.isEmpty()) return;
 
         for (UUID webhookEventId : due) {
-            executorService.submit(() ->{
-
+            executorService.submit(() -> {
+                deliverExecutor.deliver(webhookEventId);
             });
         }
     }
