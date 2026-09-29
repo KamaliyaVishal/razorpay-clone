@@ -72,4 +72,7 @@ public class Settlement extends BaseEntity {
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
 
+    @Column(name = "failure_reason")
+    private String failureReason;
+
 }

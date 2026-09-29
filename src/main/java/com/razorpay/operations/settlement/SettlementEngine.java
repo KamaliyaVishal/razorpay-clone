@@ -21,6 +21,7 @@ import java.util.concurrent.Future;
 public class SettlementEngine {
 
     private final MerchantLookupService merchantLookupService;
+    private final SettlementTransactionExecutor settlementTransactionExecutor;
 
     @Scheduled(cron = "0 0 23 * * *")
     public void runScheduled() {
@@ -37,7 +38,7 @@ public class SettlementEngine {
             List<Future<?>> futures = new ArrayList<>();
             for (UUID merchantId : merchantIds) {
                 futures.add(executorService.submit(() -> {
-                    // TODO :execute
+                    settlementTransactionExecutor.processForMerchant(merchantId, LocalDate.now());
                 }));
             }
 
