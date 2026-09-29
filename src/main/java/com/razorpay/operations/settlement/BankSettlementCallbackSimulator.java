@@ -21,7 +21,7 @@ public class BankSettlementCallbackSimulator {
     @Scheduled(fixedDelayString = "5000")
     public void processCallbacks() {
         List<Settlement> settlements = settlementRepository.findByStatus(SettlementStatus.TRANSFER_PENDING);
-        log.info("Bank Settlement callback for {}, and settlements : {}", settlements.size(), settlements);
+        log.info("Initiating bank settlement callback for {}, and settlements : {}", settlements.size(), settlements);
 
         if (settlements.isEmpty()) return;
 

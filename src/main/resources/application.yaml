@@ -79,6 +79,8 @@ app:
     randomToken-length: 32
   merchant:
     randomToken-length: 32
+  operation:
+    randomToken-length: 12
   payment:
     simulator:
       poll-interval-ms: 5000
