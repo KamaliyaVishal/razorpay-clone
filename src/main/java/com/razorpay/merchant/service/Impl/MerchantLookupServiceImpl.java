@@ -1,8 +1,11 @@
 package com.razorpay.merchant.service.Impl;
 
+import com.razorpay.common.dto.SettlementBankDetails;
 import com.razorpay.common.dto.WebhookTarget;
 import com.razorpay.common.enums.MerchantStatus;
+import com.razorpay.common.exception.ResourceNotFoundException;
 import com.razorpay.merchant.api.MerchantLookupService;
+import com.razorpay.merchant.entity.Merchant;
 import com.razorpay.merchant.repository.MerchantRepository;
 import com.razorpay.merchant.repository.MerchantWebhookConfigRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,5 +44,17 @@ public class MerchantLookupServiceImpl implements MerchantLookupService {
     public List<UUID> listActiveMerchantIds() {
         return merchantRepository.findByStatus(MerchantStatus.ACTIVE)
                 .stream().map(m -> m.getId()).toList();
+    }
+
+    @Override
+    public SettlementBankDetails getSettlementBankDetails(UUID merchantId) {
+        Merchant merchant = merchantRepository.findById(merchantId).orElseThrow(
+                () -> new ResourceNotFoundException("Merchant", merchantId));
+
+        return new SettlementBankDetails(
+                merchant.getSettlementBankAccount(),
+                merchant.getSettlementBankIFSC(),
+                merchant.getSettlementBankAccountHolderName()
+        );
     }
 }
